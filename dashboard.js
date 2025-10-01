@@ -135,3 +135,60 @@ const trendBars = document.getElementById('trendBars');
   trendBars.appendChild(row);
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if the settings section exists on the page
+    const settingsContainer = document.querySelector('.settings-container');
+    if (!settingsContainer) return;
+
+    const settingItems = document.querySelectorAll('.setting-item');
+    const settingPanels = document.querySelectorAll('.setting-panel');
+
+    function switchSettingPanel(panelName) {
+        // 1. Deactivate all menu items
+        settingItems.forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // 2. Hide all panels
+        settingPanels.forEach(panel => {
+            panel.classList.remove('show');
+        });
+
+        // 3. Activate the clicked menu item
+        const activeItem = document.querySelector(`[data-setting-panel="${panelName}"]`);
+        if (activeItem) {
+            activeItem.classList.add('active');
+        }
+
+        // 4. Show the corresponding panel
+        const activePanel = document.getElementById(`setting-${panelName}`);
+        if (activePanel) {
+            activePanel.classList.add('show');
+        }
+    }
+
+    // Set up click listeners for the settings menu
+    settingItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const panelName = item.getAttribute('data-setting-panel');
+            switchSettingPanel(panelName);
+        });
+    });
+
+    // Optional: Integrate with the main sidebar menu logic
+    // When the user clicks the main "Settings" link in the sidebar,
+    // ensure the "Profile" sub-panel is shown by default.
+    const mainSettingsButton = document.querySelector('[data-section="settings"]');
+    if (mainSettingsButton) {
+        mainSettingsButton.addEventListener('click', () => {
+            // Wait a moment to ensure the main section transition completes
+            setTimeout(() => {
+                // Default to showing the 'profile' panel when entering settings
+                switchSettingPanel('profile'); 
+            }, 50); 
+        });
+    }
+
+    // Initialize: Ensure the default active panel is visible on load
+    switchSettingPanel('profile');
+});

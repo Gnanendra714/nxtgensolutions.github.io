@@ -121,30 +121,116 @@
     </section>
 
     <!-- Settings -->
-    <section class="content" id="section-settings">
-      <h2>Settings</h2>
-      <div class="grid-2 mt">
-        <div class="panel">
-          <h3>Profile Information</h3>
-          <div class="form-grid">
-            <label>Full Name<input id="userName" type="text" value=""></label>
-            <label>Email Address<input id="userEmail" type="email" value=""></label>
+<section class="content" id="section-settings">
+  
+  <div class="settings-container">
+    
+    <!-- Left Panel: Settings Navigation Menu -->
+    <nav class="settings-nav">
+      <button class="setting-item active" data-setting-panel="profile">
+        <i class="fas fa-user"></i> Profile
+      </button>
+      <button class="setting-item" data-setting-panel="notifications">
+        <i class="fas fa-bell"></i> Notifications
+      </button>
+      <button class="setting-item" data-setting-panel="preferences">
+        <i class="fas fa-cog"></i> Preferences
+      </button>
+      <button class="setting-item" data-setting-panel="security">
+        <i class="fas fa-shield-alt"></i> Security
+      </button>
+      <button class="setting-item" data-setting-panel="billing">
+        <i class="fas fa-file-invoice-dollar"></i> Billing
+      </button>
+    </nav>
+    
+    <!-- Right Panel: Dynamic Content Area -->
+    <div class="settings-main">
+      
+      <!-- 1. Profile Panel (Default Active) -->
+      <div class="setting-panel show" id="setting-profile">
+        <h3>Profile Information</h3>
+        <div class="panel form-panel">
+          <div class="form-grid-2">
+            <label>Full Name<input id="userName" type="text" value="John Smith"></label>
+            <label>Email Address<input id="userEmail" type="email" value="john.smith@email.com"></label>
             <label>Phone Number<input type="tel" value="+1 (555) 123-4567"></label>
             <label>Address<input type="text" value="123 Main Street, City, State 12345"></label>
           </div>
-          <button class="btn">Update Profile</button>
+          <button class="btn update-btn">Update Profile</button>
         </div>
-        <div class="panel">
-          <h3>System Preferences</h3>
-          <div class="form-grid">
-            <label>Currency<select><option>USD ($)</option><option>INR (₹)</option></select></label>
-            <label>Energy Unit<select><option>kWh</option><option>kW</option></select></label>
-            <label>Time Format<select><option>12 Hour</option><option>24 Hour</option></select></label>
-            <label>Theme<select><option>Light</option><option>Dark</option></select></label>
+      </div>
+      
+      <!-- 2. Notifications Panel -->
+      <div class="setting-panel" id="setting-notifications">
+        <h3>Notification Preferences</h3>
+        <div class="panel form-panel">
+          <!-- Toggle items matching your screenshot -->
+          <div class="toggle-item">
+            Email Alerts <small class="muted">Receive alerts via email</small>
+            <label class="switch"><input type="checkbox" checked><span class="slider round"></span></label>
+          </div>
+          <div class="toggle-item">
+            SMS Alerts <small class="muted">Receive alerts via text message</small>
+            <label class="switch"><input type="checkbox"><span class="slider round"></span></label>
+          </div>
+          <div class="toggle-item">
+            Weekly Reports <small class="muted">Weekly energy usage summary</small>
+            <label class="switch"><input type="checkbox" checked><span class="slider round"></span></label>
+          </div>
+          <div class="toggle-item">
+            Monthly Reports <small class="muted">Monthly detailed analysis</small>
+            <label class="switch"><input type="checkbox" checked><span class="slider round"></span></label>
           </div>
         </div>
       </div>
-    </section>
+      
+      <!-- 3. Preferences Panel -->
+      <div class="setting-panel" id="setting-preferences">
+        <h3>System Preferences</h3>
+        <div class="panel form-panel">
+          <div class="form-grid-2">
+            <label>Currency<select><option>USD ($)</option><option>INR (₹)</option></select></label>
+            <label>Energy Unit<select><option>kWh</option><option>kW</option></select></label>
+            <label>Time Format<select><option>12 Hour</option><option>24 Hour</option></select></label>
+            <label>Theme<select><option>Dark</option><option>Light</option></select></label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 4. Security Panel -->
+      <div class="setting-panel" id="setting-security">
+        <h3>Security Settings</h3>
+        <div class="panel form-panel">
+          <div class="security-status info-box blue">
+            <i class="fas fa-check-circle"></i> Your account is secured with two-factor authentication
+          </div>
+          <button class="btn-block btn-ghost"><i class="fas fa-lock"></i> Change Password</button>
+          <button class="btn-block btn-ghost"><i class="fas fa-mobile-alt"></i> Two-Factor Authentication</button>
+          <button class="btn-block btn-ghost"><i class="fas fa-history"></i> Login History</button>
+          <button class="btn-block btn-ghost"><i class="fas fa-download"></i> Download Data</button>
+        </div>
+      </div>
+      
+      <!-- 5. Billing Panel -->
+      <div class="setting-panel" id="setting-billing">
+        <h3>Billing & Subscription</h3>
+        <div class="panel form-panel">
+          <div class="plan-status info-box green">
+            <span class="plan-name">Pro Plan</span>
+            $29.99/month • Next billing: Jan 15, 2026
+            <span class="plan-tag">Active</span>
+          </div>
+          <button class="btn-block btn-ghost"><i class="fas fa-credit-card"></i> Payment Methods</button>
+          <button class="btn-block btn-ghost"><i class="fas fa-receipt"></i> Billing History</button>
+          <button class="btn-block btn-ghost"><i class="fas fa-arrow-up"></i> Upgrade Plan</button>
+          <button class="btn-block btn-danger"><i class="fas fa-times-circle"></i> Cancel Subscription</button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</section>
   </main>
 
   <!-- Firebase (Compat CDN) -->
@@ -155,4 +241,3 @@
   <script src="dashboard.js"></script>
 </body>
 </html>
-
