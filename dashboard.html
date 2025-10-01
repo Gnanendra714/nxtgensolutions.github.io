@@ -1,46 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Nxt Gen Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nxt Gen — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css" />
 </head>
 <body>
-  <header class="nav light">
-    <div class="brand">⚡ Nxt Gen</div>
-    <nav>
-      <button class="btn-outline" onclick="signOut()">Logout</button>
+  <aside class="sidebar">
+    <div class="side-top">
+      <div class="logo">Nxt Gen</div>
+      <button class="hide-btn" id="hideSidebar" aria-label="Toggle sidebar">×</button>
+    </div>
+    <nav class="menu" id="menu">
+      <button class="menu-item active" data-section="live">🏠 <span>Live Monitor</span></button>
+      <button class="menu-item" data-section="devices">🧩 <span>Manage Devices</span></button>
+      <button class="menu-item" data-section="control">🎛️ <span>Control Devices</span></button>
+      <button class="menu-item" data-section="analytics">📊 <span>Analytics</span></button>
+      <button class="menu-item" data-section="settings">⚙️ <span>Settings</span></button>
     </nav>
-  </header>
+    <div class="logout">
+      <button id="logoutBtn" class="logout-btn">↩ Logout</button>
+    </div>
+  </aside>
 
-  <main class="dashboard">
-    <section class="summary">
-      <h2>Your Live Energy</h2>
-      <div id="totalPower" class="big">0 W</div>
+  <main class="main">
+    <header class="appbar">
+      <h1 id="pageTitle">Live Monitor</h1>
+      <div class="right">
+        <span class="dot"></span> Live Data
+      </div>
+    </header>
+
+    <!-- Live Monitor -->
+    <section class="content show" id="section-live">
+      <div class="cards-4">
+        <div class="kpi">
+          <div class="kpi-title">Current Usage</div>
+          <div class="kpi-value">2.4 kW</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">Today's Usage</div>
+          <div class="kpi-value">18.6 kWh</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">Monthly Usage</div>
+          <div class="kpi-value">542 kWh</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">Monthly Cost</div>
+          <div class="kpi-value text-orange">$89.23</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3>Device Usage</h3>
+          <ul class="usage-list" id="deviceUsage"></ul>
+        </div>
+        <div class="panel">
+          <h3>Room Usage</h3>
+          <ul class="usage-list" id="roomUsage"></ul>
+        </div>
+      </div>
+
+      <div class="panel mt">
+        <h3>Recent Alerts</h3>
+        <div class="alerts">
+          <div class="alert yellow">⚠ Air conditioning usage 15% above normal <span>2 min ago</span></div>
+          <div class="alert blue">ℹ Water heater scheduled maintenance due <span>1 hour ago</span></div>
+          <div class="alert green">✔ Energy goal achieved for today <span>3 hours ago</span></div>
+        </div>
+      </div>
     </section>
 
-    <section id="devices" class="devices-grid">
-      <!-- device cards will be injected here -->
+    <!-- Manage Devices -->
+    <section class="content" id="section-devices">
+      <div class="section-head">
+        <h2>Manage Devices</h2>
+        <button class="btn">+ Add Device</button>
+      </div>
+      <div class="cards-3" id="deviceGrid"></div>
     </section>
 
-    <section class="chartBox">
-      <h3>Live Usage</h3>
-      <canvas id="usageChart" width="600" height="200"></canvas>
+    <!-- Control Devices -->
+    <section class="content" id="section-control">
+      <div class="quick grid-4">
+        <button class="quick-btn">💡 All Lights Off</button>
+        <button class="quick-btn">🌡 AC Auto Mode</button>
+        <button class="quick-btn">🌙 Night Mode</button>
+        <button class="quick-btn">🍃 Eco Mode</button>
+      </div>
+      <div class="grid-2 mt" id="controlGrid"></div>
     </section>
 
-    <section class="simulateBox">
-      <button class="btn-primary" onclick="simulateUpdate()">Simulate update (dev)</button>
+    <!-- Analytics -->
+    <section class="content" id="section-analytics">
+      <h2>Analytics & Reports</h2>
+      <div class="cards-4">
+        <div class="kpi"><div class="kpi-title">Total Usage</div><div class="kpi-value">158.0 kWh</div></div>
+        <div class="kpi"><div class="kpi-title">Total Cost</div><div class="kpi-value">$26.87</div></div>
+        <div class="kpi"><div class="kpi-title">Avg Daily</div><div class="kpi-value">22.6 kWh</div></div>
+        <div class="kpi"><div class="kpi-title">Efficiency</div><div class="kpi-value text-orange">87%</div></div>
+      </div>
+      <div class="panel mt">
+        <h3>Weekly Usage Trend</h3>
+        <div id="trendBars" class="bars"></div>
+      </div>
+      <div class="panel mt">
+        <h3>Energy Saving Recommendations</h3>
+        <div class="recommend grid-3">
+          <div class="rec">🔧 Optimize AC Schedule <button class="btn btn-outline">Apply</button></div>
+          <div class="rec">⏱ Water Heater Timer <button class="btn btn-outline">Apply</button></div>
+          <div class="rec">🍃 Enable Eco Mode <button class="btn btn-outline">Apply</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section class="content" id="section-settings">
+      <h2>Settings</h2>
+      <div class="grid-2 mt">
+        <div class="panel">
+          <h3>Profile Information</h3>
+          <div class="form-grid">
+            <label>Full Name<input id="userName" type="text" value=""></label>
+            <label>Email Address<input id="userEmail" type="email" value=""></label>
+            <label>Phone Number<input type="tel" value="+1 (555) 123-4567"></label>
+            <label>Address<input type="text" value="123 Main Street, City, State 12345"></label>
+          </div>
+          <button class="btn">Update Profile</button>
+        </div>
+        <div class="panel">
+          <h3>System Preferences</h3>
+          <div class="form-grid">
+            <label>Currency<select><option>USD ($)</option><option>INR (₹)</option></select></label>
+            <label>Energy Unit<select><option>kWh</option><option>kW</option></select></label>
+            <label>Time Format<select><option>12 Hour</option><option>24 Hour</option></select></label>
+            <label>Theme<select><option>Light</option><option>Dark</option></select></label>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 
-  <!-- Firebase SDK (compat) -->
+  <!-- Firebase (Compat CDN) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-
   <script src="firebase-config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="dashboard.js"></script>
 </body>
 </html>
+

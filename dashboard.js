@@ -1,115 +1,137 @@
-// dashboard.js
-// expects firebase-config.js to be loaded first
+// Auth guard using Firebase and user info fill
+if (window.firebase && firebase.auth) {
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = 'index.html';
+      return;
+    }
+    const nameEl = document.getElementById('userName');
+    if (nameEl) nameEl.value = user.displayName || user.email || '';
+    const emailEl = document.getElementById('userEmail');
+    if (emailEl) emailEl.value = user.email || '';
+  });
+}
 
-let devicesRef = null;
-let chart = null;
-let chartLabels = [];
-let chartData = [];
-
-auth.onAuthStateChanged(async user => {
-  if (!user) {
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      if (window.firebase && firebase.auth) {
+        await firebase.auth().signOut();
+      }
+    } catch (e) { /* ignore */ }
     window.location.href = 'index.html';
-    return;
-  }
-  const uid = user.uid;
-  initDashboard(uid);
+  });
+}
+
+const menu = document.getElementById('menu');
+const pageTitle = document.getElementById('pageTitle');
+const sections = Array.from(document.querySelectorAll('.content'));
+const hideSidebar = document.getElementById('hideSidebar');
+const sidebar = document.querySelector('.sidebar');
+
+// Sidebar toggle for mobile
+hideSidebar.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
 });
 
-function initDashboard(uid){
-  devicesRef = db.collection('users').doc(uid).collection('devices');
+// Menu navigation
+menu.addEventListener('click', (e) => {
+  const btn = e.target.closest('.menu-item');
+  if (!btn) return;
+  menu.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const section = btn.dataset.section;
+  sections.forEach(s => s.classList.toggle('show', s.id === `section-${section}`));
+  pageTitle.textContent = btn.querySelector('span').textContent;
+});
 
-  // initial read & realtime listener
-  devicesRef.onSnapshot(snapshot => {
-    let total = 0;
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      total += (data.power || 0);
-      renderOrUpdateDeviceCard(doc.id, data);
-    });
-    document.getElementById('totalPower').innerText = Math.round(total) + ' W';
-    pushChart(total);
+// Populate sample data
+const deviceUsage = [
+  { name: 'Air Conditioning', value: 0.8, pct: 35 },
+  { name: 'Water Heater', value: 0.6, pct: 25 },
+  { name: 'Refrigerator', value: 0.3, pct: 15 },
+  { name: 'Lighting', value: 0.3, pct: 12 },
+  { name: 'Electronics', value: 0.4, pct: 13 },
+];
+
+function renderUsage(listId, data) {
+  const ul = document.getElementById(listId);
+  ul.innerHTML = '';
+  data.forEach(item => {
+    const li = document.createElement('li');
+    li.className = 'usage-item';
+    li.innerHTML = `<span>${item.name}</span>
+      <div class="bar"><span style="width:${item.pct}%"></span></div>
+      <strong>${item.pct}%</strong>`;
+    ul.appendChild(li);
   });
-
-  setupChart();
 }
 
-function renderOrUpdateDeviceCard(id, data){
-  const container = document.getElementById('devices');
-  let el = document.getElementById('device-' + id);
-  if (!el) {
-    el = document.createElement('div');
-    el.className = 'device-card';
-    el.id = 'device-' + id;
-    el.innerHTML = `
-      <h4 class="d-name">${data.name || id}</h4>
-      <p>Power: <span class="d-power">${data.power || 0}</span> W</p>
-      <p>Status: <span class="d-status">${data.status ? 'ON' : 'OFF'}</span></p>
-      <button class="btn-outline" onclick="toggleDevice('${id}')">Toggle</button>
+renderUsage('deviceUsage', deviceUsage);
+renderUsage('roomUsage', [
+  { name: 'Living Room', pct: 28 },
+  { name: 'Kitchen', pct: 22 },
+  { name: 'Master Bedroom', pct: 18 },
+  { name: 'Office', pct: 16 },
+  { name: 'Bathroom', pct: 16 },
+]);
+
+// Devices grid
+const deviceGrid = document.getElementById('deviceGrid');
+const devices = [
+  { name: 'Living Room AC', room: 'Living Room', status: 'Online', power: '0.8 kW' },
+  { name: 'Kitchen Fridge', room: 'Kitchen', status: 'Online', power: '0.3 kW' },
+  { name: 'Master Bedroom Light', room: 'Master Bedroom', status: 'Offline', power: '0 kW' },
+  { name: 'Water Heater', room: 'Utility', status: 'Online', power: '0.6 kW' },
+  { name: 'Office Computer', room: 'Office', status: 'Online', power: '0.2 kW' },
+];
+
+function renderDevices() {
+  deviceGrid.innerHTML = '';
+  devices.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'device-card';
+    const isOnline = d.status === 'Online';
+    card.innerHTML = `
+      <div class="head">
+        <strong>${d.name}</strong>
+        <div class="status"><span class="dot ${isOnline ? 'on' : 'off'}"></span>${d.status}</div>
+      </div>
+      <div>Room: <strong>${d.room}</strong></div>
+      <div>Power: <strong>${d.power}</strong></div>
+      <button class="btn btn-outline">⚙ Configure</button>
     `;
-    container.appendChild(el);
-  } else {
-    el.querySelector('.d-power').innerText = data.power || 0;
-    el.querySelector('.d-status').innerText = data.status ? 'ON' : 'OFF';
-  }
-}
-
-async function toggleDevice(deviceId){
-  const docRef = devicesRef.doc(deviceId);
-  const doc = await docRef.get();
-  if (!doc.exists) return;
-  const cur = doc.data();
-  const newStatus = !cur.status;
-  const newPower = newStatus ? (cur.name && cur.name.toLowerCase().includes('ac') ? 1200 : (cur.name.toLowerCase().includes('fan') ? 50 : 10)) : 0;
-
-  await docRef.update({
-    status: newStatus,
-    power: newPower,
-    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    deviceGrid.appendChild(card);
   });
 }
 
-// Chart
-function setupChart(){
-  const ctx = document.getElementById('usageChart').getContext('2d');
-  chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: chartLabels,
-      datasets: [{
-        label: 'Total Power (W)',
-        data: chartData,
-        borderColor: '#2c699a',
-        tension: 0.3,
-        fill: false
-      }]
-    },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
-  });
-}
+renderDevices();
 
-function pushChart(total){
-  const t = new Date().toLocaleTimeString();
-  chartLabels.push(t);
-  chartData.push(Math.round(total));
-  if (chartLabels.length > 12) { chartLabels.shift(); chartData.shift(); }
-  chart.update();
-}
+// Control cards
+const controlGrid = document.getElementById('controlGrid');
+devices.slice(0, 2).forEach(d => {
+  const panel = document.createElement('div');
+  panel.className = 'panel';
+  panel.innerHTML = `
+    <h3>${d.name}</h3>
+    <div class="form-grid">
+      <label>Power<select><option>ON</option><option>OFF</option></select></label>
+      <label>Auto Mode<select><option>Enabled</option><option>Disabled</option></select></label>
+      <label>Turn On<input type="time" value="08:00"></label>
+      <label>Turn Off<input type="time" value="22:00"></label>
+    </div>
+  `;
+  controlGrid.appendChild(panel);
+});
 
-// Simulate dev updates (writes random power values to each device) — for demo only
-async function simulateUpdate(){
-  const snapshot = await devicesRef.get();
-  const batch = db.batch();
-  snapshot.forEach(doc => {
-    const id = doc.id;
-    const cur = doc.data();
-    const newPower = cur.status ? Math.max(1, Math.round(cur.power * (0.6 + Math.random()*0.8))) : 0;
-    const ref = devicesRef.doc(id);
-    batch.update(ref, { power: newPower, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() });
-  });
-  await batch.commit();
-}
+// Trend bars
+const trendBars = document.getElementById('trendBars');
+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach((day, idx) => {
+  const pct = [60,75,55,70,85,65,80][idx];
+  const row = document.createElement('div');
+  row.className = 'bar-row';
+  row.innerHTML = `<div class="label">${day}</div><div class="bar"><span style="width:${pct}%"></span></div>`;
+  trendBars.appendChild(row);
+});
 
-// Logout
-function signOut(){
-  auth.signOut().then(()=> window.location.href = 'index.html');
-}

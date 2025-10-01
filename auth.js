@@ -1,19 +1,17 @@
 // auth.js
-// assumes firebase-config.js defines: const auth = firebase.auth(); const db = firebase.firestore();
+// expects firebase app scripts and firebase-config.js defining:
+// const auth = firebase.auth(); const db = firebase.firestore();
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Helpers
   const authModal   = () => document.getElementById('authModal');
   const loginForm   = () => document.getElementById('loginForm');
   const signupForm  = () => document.getElementById('signupForm');
 
-  // Safe attach function
   function onClick(id, fn) {
     const el = document.getElementById(id);
     if (el) el.addEventListener("click", fn);
   }
 
-  // Modal logic
   function openModal() { if(authModal()) authModal().style.display = 'flex'; }
   function closeModal(){ if(authModal()) authModal().style.display = 'none'; }
   function showTab(tab) {
@@ -31,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Attach modal buttons
   onClick('openAuth', openModal);
   onClick('openAuthFooter', openModal);
   onClick('getStarted', openModal);
@@ -39,7 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
   onClick('tabLogin', () => showTab('login'));
   onClick('tabSignup', () => showTab('signup'));
 
-  // Signup
   async function signupUser(e) {
     e.preventDefault();
     const name     = document.getElementById('signupName')?.value.trim();
@@ -47,21 +43,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = document.getElementById('signupPassword')?.value;
 
     if (!name || !email || !password || password.length < 6) {
-      return alert("Please fill all fields with valid details (password >= 6 chars)");
+      alert("Please fill all fields with valid details (password >= 6 chars)");
+      return;
     }
 
     try {
       const userCred = await auth.createUserWithEmailAndPassword(email, password);
       const uid = userCred.user.uid;
-
-      // User doc
       await db.collection('users').doc(uid).set({
         fullname: name,
         email,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      // Example default devices
       const devices = [
         { id: 'fan', name: 'Fan', power: 50, status: true },
         { id: 'light', name: 'Light', power: 10, status: false },
@@ -80,12 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Login
   async function loginUser(e) {
     e.preventDefault();
     const email    = document.getElementById('loginEmail')?.value.trim();
     const password = document.getElementById('loginPassword')?.value;
-
     try {
       await auth.signInWithEmailAndPassword(email, password);
       window.location.href = 'dashboard.html';
@@ -94,11 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Attach form listeners safely
   if (loginForm())  loginForm().addEventListener("submit", loginUser);
   if (signupForm()) signupForm().addEventListener("submit", signupUser);
 
-  // Auto redirect if logged in
   auth.onAuthStateChanged(user => {
     const path = window.location.pathname;
     if (user && (path.endsWith("index.html") || path.endsWith("/"))) {
@@ -106,3 +96,4 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+

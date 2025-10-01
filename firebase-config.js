@@ -9,7 +9,8 @@ const firebaseConfig = {
   measurementId: "G-QLHTGRRJT1"
 };
 
-// Initialize Firebase
+// Initialize (compat build)
 firebase.initializeApp(firebaseConfig);
+// Expose globals used by auth.js
 const auth = firebase.auth();
 const db = firebase.firestore();
