@@ -64,9 +64,7 @@ body{
   text-align: center;
   color: #fff; /* white text for readability */
   position: relative;
-
-  /* Background image */
-  background: url("C:\\Users\\Gnani\\Desktop\\Nxt Gen\\hero-energy-home.jpg") no-repeat center center/cover;
+  
 }
 
 /* Optional: Dark overlay to improve text contrast */
@@ -282,16 +280,19 @@ body{
 .icon-energy::before { content: "⚡"; color: #13d054; }
 .icon-leaf::before { content: "🍃"; color: #12c24f; }
 
-/* Fixed background image for the whole site */
+/* Fixed background overlay (no image now) */
 .site-bg {
   position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
+  top: 0; 
+  left: 0;
+  width: 100vw; 
+  height: 100vh;
   z-index: -1;
-  background: url("C:\\Users\\Gnani\\Desktop\\Nxt Gen\\hero-energy-home.jpg") no-repeat center center/cover;
+  background: linear-gradient(180deg,#071218 0%, #061219 60%);
   opacity: 0.18;
   pointer-events: none;
 }
+
 
 /* Section titles with green glowing block */
 .section-title {
