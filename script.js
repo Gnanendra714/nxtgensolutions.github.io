@@ -1,13 +1,12 @@
-/* Client-side auth & UI helpers using localStorage.
-   NOTE: This is for demo/local static usage only. For production use a backend and proper auth.
-*/
+// script.js (Firebase-powered Auth + Dashboard)
 
+// ---------------- Common UI ----------------
 document.addEventListener('DOMContentLoaded', () => {
-  // common footer year
+  // Footer year
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  // mobile nav toggle
+  // Mobile nav toggle
   const toggle = document.querySelector('.mobile-toggle');
   if (toggle) {
     toggle.addEventListener('click', () => {
@@ -16,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Smooth in-page scrolling
+  // Smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', (e) => {
       const href = a.getAttribute('href');
@@ -30,17 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ---- Redirect if already logged in (on login/signup pages) ----
-  if ((window.location.pathname.endsWith('login.html') || window.location.pathname.endsWith('signup.html'))
-    && localStorage.getItem('loggedIn')) {
-    window.location.href = 'dashboard.html';
-  }
-
-  // ---- Signup logic ----
+  // ---------------- Signup ----------------
   const signupForm = document.getElementById('signupForm');
   if (signupForm) {
-    signupForm.addEventListener('submit', (ev) => {
-      ev.preventDefault();
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
       const name = document.getElementById('signupName').value.trim();
       const email = document.getElementById('signupEmail').value.trim().toLowerCase();
       const pw = document.getElementById('signupPassword').value;
@@ -52,90 +45,81 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      if (users.find(u => u.email === email)) {
-        msg.textContent = '⚠️ Account with that email already exists. Please login.';
+      try {
+        const userCred = await auth.createUserWithEmailAndPassword(email, pw);
+        const uid = userCred.user.uid;
+
+        // Store user profile in Firestore
+        await db.collection("users").doc(uid).set({
+          fullname: name,
+          email: email,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        msg.textContent = '✅ Signup successful! Redirecting...';
+        msg.style.color = 'green';
+        setTimeout(() => window.location.href = 'dashboard.html', 1000);
+      } catch (err) {
+        msg.textContent = err.message;
         msg.style.color = 'red';
-        return;
       }
-
-      const hashedPw = btoa(pw); // simple obfuscation
-      users.push({ name, email, password: hashedPw, created: new Date().toISOString() });
-      localStorage.setItem('users', JSON.stringify(users));
-
-      localStorage.setItem('loggedIn', email);
-      msg.textContent = '✅ Signup successful! Redirecting...';
-      msg.style.color = 'green';
-      setTimeout(() => window.location.href = 'dashboard.html', 1000);
     });
   }
 
-  // ---- Login logic ----
+  // ---------------- Login ----------------
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
-    loginForm.addEventListener('submit', (ev) => {
-      ev.preventDefault();
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
       const email = document.getElementById('loginEmail').value.trim().toLowerCase();
       const pw = document.getElementById('loginPassword').value;
       const msg = document.getElementById('loginMessage');
 
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const user = users.find(u => u.email === email && u.password === btoa(pw));
-      if (!user) {
-        msg.textContent = '❌ Invalid email or password.';
+      try {
+        await auth.signInWithEmailAndPassword(email, pw);
+        msg.textContent = '✅ Login successful! Redirecting...';
+        msg.style.color = 'green';
+        setTimeout(() => window.location.href = 'dashboard.html', 800);
+      } catch (err) {
+        msg.textContent = '❌ ' + err.message;
         msg.style.color = 'red';
-        return;
       }
-
-      localStorage.setItem('loggedIn', email);
-      msg.textContent = '✅ Login successful! Redirecting...';
-      msg.style.color = 'green';
-      setTimeout(() => window.location.href = 'dashboard.html', 800);
     });
   }
 
-  // ---- Dashboard protection & UX ----
+  // ---------------- Dashboard ----------------
   if (window.location.pathname.endsWith('dashboard.html')) {
-    const loggedIn = localStorage.getItem('loggedIn');
-    if (!loggedIn) {
-      window.location.href = 'login.html';
-    } else {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const me = users.find(u => u.email === loggedIn) || { name: loggedIn, email: loggedIn };
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        window.location.href = 'index.html';
+      } else {
+        // Load user profile
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        const me = userDoc.data() || { fullname: user.email, email: user.email };
 
-      const nameEl = document.getElementById('userName');
-      if (nameEl) nameEl.textContent = me.name || me.email;
+        const nameEl = document.getElementById('userName');
+        if (nameEl) nameEl.textContent = me.fullname || me.email;
 
-      const emailEl = document.getElementById('userEmail');
-      if (emailEl) emailEl.textContent = me.email;
-    }
+        const emailEl = document.getElementById('userEmail');
+        if (emailEl) emailEl.textContent = me.email;
 
-    // logout handler
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('loggedIn');
-        window.location.href = 'login.html';
-      });
-    }
-
-    // device toggle buttons with On/Off states
-    document.querySelectorAll('button[data-device]').forEach(btn => {
-      btn.dataset.state = "off"; // default state
-      btn.textContent = "Turn On";
-
-      btn.addEventListener('click', () => {
-        const isOn = btn.dataset.state === "on";
-        if (isOn) {
-          btn.textContent = "Turn On";
-          btn.dataset.state = "off";
-        } else {
-          btn.textContent = "Turn Off";
-          btn.dataset.state = "on";
+        // Attach logout
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', () => {
+            auth.signOut().then(() => window.location.href = 'index.html');
+          });
         }
-        btn.classList.add('active');
-        setTimeout(() => btn.classList.remove('active'), 600);
-      });
+
+        // Example: Realtime device listener
+        db.collection("users").doc(user.uid).collection("devices")
+          .onSnapshot(snapshot => {
+            snapshot.forEach(doc => {
+              console.log("Device update:", doc.id, doc.data());
+              // TODO: update dashboard UI for each device
+            });
+          });
+      }
     });
   }
 });

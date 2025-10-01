@@ -1,83 +1,115 @@
 // dashboard.js
-document.addEventListener('DOMContentLoaded', () => {
-  // ---- Dashboard protection ----
-  const loggedIn = localStorage.getItem('loggedIn');
-  if (!loggedIn) {
-    window.location.href = 'login.html';
+// expects firebase-config.js to be loaded first
+
+let devicesRef = null;
+let chart = null;
+let chartLabels = [];
+let chartData = [];
+
+auth.onAuthStateChanged(async user => {
+  if (!user) {
+    window.location.href = 'index.html';
     return;
   }
-
-  // Fetch user info
-  const users = JSON.parse(localStorage.getItem('users') || '[]');
-  const me = users.find(u => u.email === loggedIn) || { name: loggedIn, email: loggedIn };
-
-  // Populate user info in dashboard
-  const userNameEl = document.getElementById('userName');
-  if (userNameEl) userNameEl.textContent = me.name;
-
-  const userEmailEl = document.getElementById('userEmail');
-  if (userEmailEl) userEmailEl.textContent = me.email;
-
-  const dashboardUserNameEl = document.getElementById('dashboardUserName');
-  if (dashboardUserNameEl) dashboardUserNameEl.textContent = me.name;
-
-  // ---- Logout ----
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('loggedIn');
-      window.location.href = 'login.html';
-    });
-  }
-
-  // ---- Tab switching ----
-  const navHome = document.getElementById('nav-home');
-  const navDevice = document.getElementById('nav-device');
-  const tabHome = document.getElementById('live-energy');
-  const tabDevice = document.getElementById('device-control-section');
-
-  if (navHome && navDevice && tabHome && tabDevice) {
-    navHome.addEventListener('click', (e) => {
-      e.preventDefault();
-      navHome.classList.add('active');
-      navDevice.classList.remove('active');
-      tabHome.style.display = '';
-      tabDevice.style.display = 'none';
-    });
-
-    navDevice.addEventListener('click', (e) => {
-      e.preventDefault();
-      navDevice.classList.add('active');
-      navHome.classList.remove('active');
-      tabHome.style.display = 'none';
-      tabDevice.style.display = '';
-    });
-  }
-
-  // ---- Device toggle switches ----
-  const deviceCheckboxes = document.querySelectorAll('.device-control-item input[type="checkbox"]');
-  deviceCheckboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', () => {
-      const parent = checkbox.closest('.device-control-item');
-      const valueEl = parent.querySelector('.device-control-item-value');
-      if (checkbox.checked) {
-        valueEl.textContent = "On"; // Update value when switched on
-      } else {
-        valueEl.textContent = "Off"; // Update value when switched off
-      }
-      // Optional: add visual feedback
-      parent.classList.add('active');
-      setTimeout(() => parent.classList.remove('active'), 400);
-    });
-  });
-
-  // ---- Mobile nav toggle ----
-  const toggle = document.querySelector('.mobile-toggle');
-  if (toggle) {
-    toggle.addEventListener('click', () => {
-      const nav = document.querySelector('.nav-links');
-      if (nav) nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
-    });
-  }
+  const uid = user.uid;
+  initDashboard(uid);
 });
 
+function initDashboard(uid){
+  devicesRef = db.collection('users').doc(uid).collection('devices');
+
+  // initial read & realtime listener
+  devicesRef.onSnapshot(snapshot => {
+    let total = 0;
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      total += (data.power || 0);
+      renderOrUpdateDeviceCard(doc.id, data);
+    });
+    document.getElementById('totalPower').innerText = Math.round(total) + ' W';
+    pushChart(total);
+  });
+
+  setupChart();
+}
+
+function renderOrUpdateDeviceCard(id, data){
+  const container = document.getElementById('devices');
+  let el = document.getElementById('device-' + id);
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'device-card';
+    el.id = 'device-' + id;
+    el.innerHTML = `
+      <h4 class="d-name">${data.name || id}</h4>
+      <p>Power: <span class="d-power">${data.power || 0}</span> W</p>
+      <p>Status: <span class="d-status">${data.status ? 'ON' : 'OFF'}</span></p>
+      <button class="btn-outline" onclick="toggleDevice('${id}')">Toggle</button>
+    `;
+    container.appendChild(el);
+  } else {
+    el.querySelector('.d-power').innerText = data.power || 0;
+    el.querySelector('.d-status').innerText = data.status ? 'ON' : 'OFF';
+  }
+}
+
+async function toggleDevice(deviceId){
+  const docRef = devicesRef.doc(deviceId);
+  const doc = await docRef.get();
+  if (!doc.exists) return;
+  const cur = doc.data();
+  const newStatus = !cur.status;
+  const newPower = newStatus ? (cur.name && cur.name.toLowerCase().includes('ac') ? 1200 : (cur.name.toLowerCase().includes('fan') ? 50 : 10)) : 0;
+
+  await docRef.update({
+    status: newStatus,
+    power: newPower,
+    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+// Chart
+function setupChart(){
+  const ctx = document.getElementById('usageChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartLabels,
+      datasets: [{
+        label: 'Total Power (W)',
+        data: chartData,
+        borderColor: '#2c699a',
+        tension: 0.3,
+        fill: false
+      }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+}
+
+function pushChart(total){
+  const t = new Date().toLocaleTimeString();
+  chartLabels.push(t);
+  chartData.push(Math.round(total));
+  if (chartLabels.length > 12) { chartLabels.shift(); chartData.shift(); }
+  chart.update();
+}
+
+// Simulate dev updates (writes random power values to each device) — for demo only
+async function simulateUpdate(){
+  const snapshot = await devicesRef.get();
+  const batch = db.batch();
+  snapshot.forEach(doc => {
+    const id = doc.id;
+    const cur = doc.data();
+    const newPower = cur.status ? Math.max(1, Math.round(cur.power * (0.6 + Math.random()*0.8))) : 0;
+    const ref = devicesRef.doc(id);
+    batch.update(ref, { power: newPower, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() });
+  });
+  await batch.commit();
+}
+
+// Logout
+function signOut(){
+  auth.signOut().then(()=> window.location.href = 'index.html');
+}

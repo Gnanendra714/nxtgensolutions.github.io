@@ -566,3 +566,104 @@ body{
   .glow-block { min-width: 80px; height: 28px; font-size: 1.2rem; }
 }
 
+:root{
+  --bg: #f9fbfd;
+  --card: #ffffff;
+  --muted: #6b7380;
+  --accent: #2c69a9;
+  --accent-2: #2bb673;
+  --soft: #eef6fb;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: Inter, Arial, sans-serif;
+  background:var(--bg);
+  color:#123;
+  -webkit-font-smoothing:antialiased;
+}
+
+.nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 28px;
+  background:linear-gradient(90deg,#ffffffcc, #f3f8ff);
+  position:sticky;
+  top:0;
+  border-bottom:1px solid #e6eef6;
+}
+.brand{font-weight:700; color:var(--accent); font-size:18px}
+nav a{margin-right:14px; color:#234; text-decoration:none;}
+.btn-primary{
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  padding:10px 14px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.btn-outline{
+  background:transparent;
+  border:1px solid #d6e6f6;
+  padding:8px 12px;
+  border-radius:8px; cursor:pointer;
+}
+
+/* Hero */
+.hero{
+  padding:80px 24px;
+  text-align:center;
+  background: linear-gradient(180deg, #f7fbfe, #ffffff);
+}
+.hero h1{font-size:36px; color:var(--accent);}
+.hero p{color:var(--muted); margin-top:8px; font-size:16px}
+
+/* sections */
+.content{padding:48px 20px; text-align:center; background:transparent}
+.content h2{color:var(--accent-2)}
+
+/* modal */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  align-items:center;
+  justify-content:center;
+  background:rgba(10,20,30,0.12);
+}
+.modal .modal-box{
+  width:360px;
+  background:var(--card);
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 6px 20px rgba(20,40,80,0.08);
+}
+.hidden{display:none}
+.form input{
+  display:block;
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border:1px solid #e7eef8;
+  border-radius:8px;
+  background:#fbfeff;
+}
+
+/* dashboard */
+.dashboard{padding:28px}
+.summary{display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:16px}
+.big{font-size:28px; color:var(--accent); font-weight:700}
+.devices-grid{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px}
+.device-card{
+  background:var(--card);
+  border-radius:10px;
+  padding:14px;
+  min-width:200px;
+  box-shadow:0 6px 18px rgba(20,40,80,0.04);
+}
+.chartBox{background:var(--card); padding:14px; border-radius:10px; box-shadow:0 6px 18px rgba(20,40,80,0.04);}
+
+/* footer */
+.footer{padding:28px; text-align:center; background:transparent}

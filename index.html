@@ -25,7 +25,7 @@
     </nav>
   </header>
 
-  <main>
+<main>
     <!-- Hero Section -->
     <section id="hero" class="hero hero-glow">
       <div class="hero-inner">
@@ -198,11 +198,7 @@
   <div id="login-modal" class="modal" style="display:none;">
     <div class="modal-content auth-box">
       <span class="close" id="close-login">&times;</span>
-      <div class="auth-icon">
-        <span class="icon-user"></span>
-      </div>
       <h2 class="auth-title">Welcome Back</h2>
-      <div class="auth-subtitle">Access your energy dashboard</div>
       <form id="loginForm" novalidate>
         <label>Email
           <input type="email" id="loginEmail" required autocomplete="email">
@@ -210,14 +206,8 @@
         <label>Password
           <input type="password" id="loginPassword" required autocomplete="current-password" minlength="6">
         </label>
-        <button type="submit" class="btn-primary btn-block">
-          <span class="icon-lock"></span> Sign In Securely
-        </button>
-        <div class="auth-links">
-          <a href="#" class="auth-link">Forgot password?</a> |
-          <a href="#" class="auth-link" id="to-signup">Create account</a>
-        </div>
-        <p class="form-note" id="loginMessage" role="status" aria-live="polite"></p>
+        <button type="submit" class="btn-primary btn-block">Sign In Securely</button>
+        <p class="form-note" id="loginMessage"></p>
       </form>
     </div>
   </div>
@@ -226,11 +216,7 @@
   <div id="signup-modal" class="modal" style="display:none;">
     <div class="modal-content auth-box">
       <span class="close" id="close-signup">&times;</span>
-      <div class="auth-icon">
-        <span class="icon-user"></span>
-      </div>
       <h2 class="auth-title">Create Account</h2>
-      <div class="auth-subtitle">Join the energy revolution</div>
       <form id="signupForm" novalidate>
         <label>Full name
           <input type="text" id="signupName" required autocomplete="name">
@@ -238,75 +224,23 @@
         <label>Email
           <input type="email" id="signupEmail" required autocomplete="email">
         </label>
-        <label>Password (min 6 chars)
+        <label>Password
           <input type="password" id="signupPassword" required minlength="6" autocomplete="new-password">
         </label>
-        <button type="submit" class="btn-primary btn-block">
-          <span class="icon-lock"></span> Sign Up Securely
-        </button>
-        <div class="auth-links">
-          <a href="#" class="auth-link" id="to-login">Already have an account?</a>
-        </div>
-        <p class="form-note" id="signupMessage" role="status" aria-live="polite"></p>
+        <button type="submit" class="btn-primary btn-block">Sign Up Securely</button>
+        <p class="form-note" id="signupMessage"></p>
       </form>
     </div>
   </div>
 
-  <script src="script.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const loginModal = document.getElementById('login-modal');
-      const signupModal = document.getElementById('signup-modal');
-      const loginLink = document.getElementById('login-link');
-      const signupLink = document.getElementById('signup-link');
-      const closeLogin = document.getElementById('close-login');
-      const closeSignup = document.getElementById('close-signup');
-      const toSignup = document.getElementById('to-signup');
-      const toLogin = document.getElementById('to-login');
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
-      if (loginLink) {
-        loginLink.onclick = function(e) {
-          e.preventDefault();
-          loginModal.style.display = 'flex';
-          signupModal.style.display = 'none';
-        };
-      }
-      if (signupLink) {
-        signupLink.onclick = function(e) {
-          e.preventDefault();
-          signupModal.style.display = 'flex';
-          loginModal.style.display = 'none';
-        };
-      }
-      if (closeLogin) {
-        closeLogin.onclick = function() {
-          loginModal.style.display = 'none';
-        };
-      }
-      if (closeSignup) {
-        closeSignup.onclick = function() {
-          signupModal.style.display = 'none';
-        };
-      }
-      if (toSignup) {
-        toSignup.onclick = function(e) {
-          e.preventDefault();
-          loginModal.style.display = 'none';
-          signupModal.style.display = 'flex';
-        };
-      }
-      if (toLogin) {
-        toLogin.onclick = function(e) {
-          e.preventDefault();
-          signupModal.style.display = 'none';
-          loginModal.style.display = 'flex';
-        };
-      }
-      window.onclick = function(event) {
-        if (event.target === loginModal) loginModal.style.display = 'none';
-        if (event.target === signupModal) signupModal.style.display = 'none';
-      };
-    });
-  </script>
+  <!-- Config & Auth -->
+  <script src="firebase-config.js"></script>
+  <script src="auth.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
